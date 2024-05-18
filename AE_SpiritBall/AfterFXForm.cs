@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -56,19 +58,38 @@ namespace AE_SpiritBall
 			get { return m_CloseBtnRect; }
 		}
 
-		private int m_SelectedIndex = -1;
 		[Category("SB")]
 		public int SelectedIndex
 		{
-			get { return (int)m_SelectedIndex; }
+			get { return (int)m_afterFXs.SelectedIndex; }
+			set
+			{
+				m_afterFXs.SelectedIndex = value;
+
+				if(m_aeicons.Count > 0)
+				{
+					m_aeicons[m_afterFXs.SelectedIndex].Focus();
+				}
+			}
 		}
 
-		private Color m_NormalColor = Color.FromArgb(128,128,200);
+		private Color m_SelectedColorNone = Color.FromArgb(128, 128, 200);
 		[Category("SB_Color")]
-		public Color NormalColor
+		public Color SelectedColorNone
 		{
-			get { return m_NormalColor; }
-			set { m_NormalColor = value; this.Invalidate(); }
+			get { return m_SelectedColorNone; }
+			set
+			{
+				m_SelectedColorNone = value;
+				if (m_aeicons.Count > 0)
+				{
+					for (int i = 0; i < m_aeicons.Count; i++)
+					{
+						m_aeicons[i].SelectedColorNone = m_SelectedColorNone;
+					}
+				}
+				this.Invalidate();
+			}
 		}
 
 		private Color m_SelectedColor = Color.FromArgb(200, 200, 255);
@@ -76,15 +97,21 @@ namespace AE_SpiritBall
 		public Color SelectedColor
 		{
 			get { return m_SelectedColor; }
-			set { m_SelectedColor = value; this.Invalidate(); }
+			set
+			{
+				m_SelectedColor = value;
+				if (m_aeicons.Count > 0)
+				{
+					for (int i = 0; i < m_aeicons.Count; i++)
+					{
+						m_aeicons[i].SelectedColor = m_SelectedColor;
+					}
+				}
+				this.Invalidate();
+			}
 		}
 		private Color m_SelectedColorHi = Color.FromArgb(235, 235, 255);
-		[Category("SB_Color")]
-		public Color SelectedColorHi
-		{
-			get { return m_SelectedColorHi; }
-			set { m_SelectedColorHi = value;}
-		}
+
 		private Color m_BarColor = Color.FromArgb(64, 64, 64);
 		[Category("SB_Color")]
 		public Color BarColor
@@ -104,7 +131,36 @@ namespace AE_SpiritBall
 		public Color TextColor
 		{
 			get { return m_TextColor; }
-			set { m_TextColor = value; this.Invalidate(); }
+			set
+			{
+				m_TextColor = value;
+				if (m_aeicons.Count > 0)
+				{
+					for (int i = 0; i < m_aeicons.Count; i++)
+					{
+						m_aeicons[i].TextColor = m_TextColor;
+					}
+				}
+				this.Invalidate();
+			}
+		}
+		private Color m_TextColorNone = Color.FromArgb(22, 22, 25);
+		[Category("SB_Color")]
+		public Color TextColorNone
+		{
+			get { return m_TextColorNone; }
+			set
+			{
+				m_TextColorNone = value;
+				if (m_aeicons.Count > 0)
+				{
+					for (int i = 0; i < m_aeicons.Count; i++)
+					{
+						m_aeicons[i].TextColorNone = m_TextColorNone;
+					}
+				}
+				this.Invalidate();
+			}
 		}
 		[Category("SB_Color")]
 		public new Color BackColor
@@ -119,6 +175,12 @@ namespace AE_SpiritBall
 			set { base.ForeColor = value; this.Invalidate(); }
 		}
 		private Font m_TextFont;
+		private ContextMenuStrip contextMenuStrip1;
+		private IContainer components;
+		private ToolStripMenuItem openAepFileMenu;
+		private ToolStripMenuItem clearAepPathMenu;
+		private ToolStripMenuItem quitMenu;
+
 		[Category("SB_Color")]
 		public Font TextFont
 		{
@@ -126,59 +188,145 @@ namespace AE_SpiritBall
 			set
 			{
 				this.m_TextFont = value;
+				if (m_aeicons.Count > 0)
+				{
+					for (int i = 0; i < m_aeicons.Count; i++)
+					{
+						m_aeicons[i].Font = m_TextFont;
+					}
+				}
 				this.Invalidate();
 			}
 		}
+		private List<AEIcon> m_aeicons = new List<AEIcon>();
 		public AfterFXForm()
 		{
 			m_TextFont = base.Font;
 			DoubleBuffered = true;
+			InitializeComponent();
 
 			if (m_afterFXs.Count > 0)
 			{
-				m_SelectedIndex = m_afterFXs.Count - 1;
+				m_afterFXs.SelectedIndex = m_afterFXs.Count - 1;
+
+				for (int i = 0; i < m_afterFXs.Count; i++)
+				{
+					AEIcon ai = new AEIcon();
+					ai.Text = m_afterFXs.Caption(i);
+					ai.Index = i;
+					ai.Size = new Size(m_ItemWidth - 4, m_ItemHeight - 4);
+					ai.Location = new Point(m_ItemWidth * i + 2, 2 + m_BarHeight);
+					ai.Aep += (sender, e) =>
+					{
+						m_afterFXs.aepPath = e.Aep;
+						SelectedIndex = e.Index;
+						this.Invalidate();
+						Exec();
+					};
+					ai.MouseClick += (sender, e) =>
+					{
+						AEIcon rr = (AEIcon)sender;
+						m_afterFXs.SelectedIndex = rr.Index;
+						Exec();
+					};
+					ai.KeyEnter += (sender, e) =>
+					{
+						AEIcon rr = (AEIcon)sender;
+						m_afterFXs.SelectedIndex = rr.Index;
+						Exec();
+
+					};
+					m_aeicons.Add(ai);
+					this.Controls.Add(ai);
+				}
+
 			}
 			ChkSize();
+
+
+			quitMenu.Click += (sender, e) =>
+			{
+				Application.Exit();
+			};
+			openAepFileMenu.Click += (sender, e) =>
+			{
+				OpenAepDialog();
+			};
+			clearAepPathMenu.Click += (sender, e) =>
+			{
+				m_afterFXs.aepPath = "";
+				SetAepPath("");
+				this.Invalidate();
+			};
+		}
+		protected override void OnLoad(EventArgs e)
+		{
+			base.OnLoad(e);
+			string[] cmds = System.Environment.GetCommandLineArgs();
+			if (cmds.Length > 1)
+			{
+				for (int i = 1; i < cmds.Length; i++)
+				{
+					if (SetAepPath(cmds[i]) == true)
+					{
+						break;
+					}
+				}
+			}
+			this.KeyPreview = true;
+			SelectedIndex = m_afterFXs.Count-1;	
+		}
+		public bool SetAepPath(string p)
+		{
+			bool ret = false;
+			this.Text = "AE元気玉";
+			if (File.Exists(p) == false) return ret;
+			m_afterFXs.aepPath = p;
+			if (m_afterFXs.aepPath != "")
+			{
+				string[] pp = p.Split('\\');
+				string cap = "";
+				if (pp.Length > 0)
+				{
+					cap = pp[pp.Length - 1];
+					if (cap.Length > 1)
+					{
+						cap = pp[pp.Length - 2] + "//" + cap;
+					}
+					if (cap.Length > 2)
+					{
+						cap = pp[pp.Length - 3] + "//" + cap;
+					}
+				}
+				this.Text = cap;
+				m_aeppath = p;
+				this.Invalidate();
+				ret = true;
+			}
+			return ret;
 		}
 		private void ChkSize()
 		{
+			int cou = m_afterFXs.Count;
+			if (cou <= 0) cou = 1;
 			this.ClientSize = new Size(
-				m_ItemWidth * m_afterFXs.Count, 
-				m_ItemHeight+m_BarHeight);
+				m_ItemWidth * cou,
+				m_ItemHeight + m_BarHeight);
 			int w = m_BarHeight / 2;
 			m_CloseBtnRect = new Rectangle(this.Width - w - 4, w / 2, w, w);
+			if (m_aeicons.Count > 0)
+			{
+				for (int i = 0; i < m_aeicons.Count; i++)
+				{
+					m_aeicons[i].Size = new Size(m_ItemWidth - 4, m_ItemHeight - 4);
+					m_aeicons[i].Location = new Point(m_ItemWidth * i + 2, 2 + m_BarHeight);
+				}
+			}
 		}
 		protected override void OnResize(EventArgs e)
 		{
-			this.ClientSize = new Size(m_ItemWidth * m_afterFXs.Count, m_ItemHeight+m_BarHeight);
+			this.ClientSize = new Size(m_ItemWidth * m_afterFXs.Count, m_ItemHeight + m_BarHeight);
 			base.OnResize(e);
-		}
-		private void DrawItem(Graphics g, SolidBrush sb, Pen p, int idx,StringFormat sf)
-		{
-			sb.Color = m_NormalColor;
-			if(idx == m_SelectedIndex) 
-			{
-				if (m_md2)
-				{
-					sb.Color = m_SelectedColorHi;
-
-				}
-				else
-				{
-					sb.Color = m_SelectedColor;
-				}
-			}
-			Rectangle rct = new Rectangle(
-				idx * m_ItemWidth + 2, 
-				2 + m_BarHeight, 
-				m_ItemWidth - 4, m_ItemHeight - 4);
-			g.FillRectangle(sb, rct);
-			sb.Color =m_TextColor;
-			g.DrawString(m_afterFXs.Caption(idx), m_TextFont, sb,rct, sf);
-			rct = new Rectangle(rct.Left, rct.Top, rct.Width - 1, rct.Height - 1);
-			p.Color = ForeColor;
-			g.DrawRectangle(p, rct);
-
 		}
 		// **************************************************************
 		protected override void OnPaint(PaintEventArgs e)
@@ -189,7 +337,7 @@ namespace AE_SpiritBall
 			using (StringFormat sf = new StringFormat())
 			{
 				sb.Color = BackColor;
-				g.FillRectangle(sb,this.ClientRectangle);
+				g.FillRectangle(sb, this.ClientRectangle);
 				Rectangle rct = new Rectangle(0, 0, this.Width, m_BarHeight);
 				sb.Color = m_BarColor;
 				g.FillRectangle(sb, rct);
@@ -203,77 +351,29 @@ namespace AE_SpiritBall
 				g.DrawString(base.Text, this.Font, sb, rct, sf);
 
 
-				if (m_afterFXs.Count > 0)
-				{
-					sf.Alignment = StringAlignment.Center;
-					sf.LineAlignment = StringAlignment.Center;
-					for (int i = 0; i < m_afterFXs.Count; i++)
-					{
-						DrawItem(g,sb,p,i,sf);
-
-					}
-				}
-
 			}
 		}
 		// **************************************************************
-		public void ShowAnswer()
-		{
-			bool tm = this.TopMost;
-			this.TopMost = false;
-			using(AnswerOK dlg = new AnswerOK())
-			{
-				dlg.InfoText = "aaaaa.aep";
-				dlg.TopMost = true;
-				if(dlg.ShowDialog()== DialogResult.OK)
-				{
 
-				}
-			}
-			this.TopMost = tm;
-		}
-
-
-		protected override void OnMouseEnter(EventArgs e)
-		{
-			base.OnMouseEnter(e);
-			this.Invalidate();
-		}
 		protected override void OnMouseMove(MouseEventArgs e)
 		{
-			if(m_md)
+			if (m_md)
 			{
 				int dx = this.Left + e.X - m_mdp.X;
 				int dy = this.Top + e.Y - m_mdp.Y;
-				this.Location = new Point(m_mdloc.X+ dx, m_mdloc.Y + dy);
-			}
-			else
-			{
-				int idx = e.X / m_ItemWidth;
-				if (m_SelectedIndex != idx)
-				{
-					m_SelectedIndex = idx;
-					this.Invalidate();
-
-				}
+				this.Location = new Point(m_mdloc.X + dx, m_mdloc.Y + dy);
 			}
 			base.OnMouseMove(e);
 		}
-		protected override void OnMouseLeave(EventArgs e)
-		{
-			this.Invalidate();
-			base.OnMouseLeave(e);
-		}
-		private Point m_mdp = new Point(0,0);
+		private Point m_mdp = new Point(0, 0);
 		private Point m_mdloc = new Point(0, 0);
 
 		private bool m_md = false;
-		private bool m_md2 = false;
 		protected override void OnMouseDown(MouseEventArgs e)
 		{
 			if (e.Y < m_BarHeight)
 			{
-				if((e.X>=m_CloseBtnRect.Left)&&(e.X<m_CloseBtnRect.Right))
+				if ((e.X >= m_CloseBtnRect.Left) && (e.X < m_CloseBtnRect.Right))
 				{
 					Application.Exit();
 					return;
@@ -282,31 +382,141 @@ namespace AE_SpiritBall
 				m_mdp = new Point(this.Left + e.X, this.Top + e.Y);
 				m_mdloc = this.Location;
 			}
-			else
-			{
-				int idx = e.X / m_ItemWidth;
-				if ((idx>=0)&&(idx<m_afterFXs.Count))
-				{
-					m_SelectedIndex = idx;
-					m_md2 = true;
-					this.Invalidate();
-					ShowAnswer();
-				}
-			}
 			base.OnMouseDown(e);
 		}
 		protected override void OnMouseUp(MouseEventArgs e)
 		{
-			if(m_md)
+			if (m_md)
 			{
 				m_md = false;
 			}
-			if(m_md2)
-			{
-				m_md2 = false;
-				this.Invalidate();
-			}
 			base.OnMouseUp(e);
+		}
+
+		private void InitializeComponent()
+		{
+			this.components = new System.ComponentModel.Container();
+			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+			this.openAepFileMenu = new System.Windows.Forms.ToolStripMenuItem();
+			this.quitMenu = new System.Windows.Forms.ToolStripMenuItem();
+			this.clearAepPathMenu = new System.Windows.Forms.ToolStripMenuItem();
+			this.contextMenuStrip1.SuspendLayout();
+			this.SuspendLayout();
+			// 
+			// contextMenuStrip1
+			// 
+			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.openAepFileMenu,
+            this.clearAepPathMenu,
+            this.quitMenu});
+			this.contextMenuStrip1.Name = "contextMenuStrip1";
+			this.contextMenuStrip1.Size = new System.Drawing.Size(181, 92);
+			// 
+			// openAepFileMenu
+			// 
+			this.openAepFileMenu.Name = "openAepFileMenu";
+			this.openAepFileMenu.Size = new System.Drawing.Size(180, 22);
+			this.openAepFileMenu.Text = "Open AepFile";
+			// 
+			// quitMenu
+			// 
+			this.quitMenu.Name = "quitMenu";
+			this.quitMenu.Size = new System.Drawing.Size(180, 22);
+			this.quitMenu.Text = "Quit";
+			// 
+			// clearAepPathMenu
+			// 
+			this.clearAepPathMenu.Name = "clearAepPathMenu";
+			this.clearAepPathMenu.Size = new System.Drawing.Size(180, 22);
+			this.clearAepPathMenu.Text = "Clear AepPath";
+			// 
+			// AfterFXForm
+			// 
+			this.ClientSize = new System.Drawing.Size(507, 104);
+			this.ContextMenuStrip = this.contextMenuStrip1;
+			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+			this.KeyPreview = true;
+			this.Name = "AfterFXForm";
+			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+			this.contextMenuStrip1.ResumeLayout(false);
+			this.ResumeLayout(false);
+
+		}
+
+		public void Exec()
+		{
+			if (m_afterFXs.aepPath == "")
+			{
+				if (OpenAepDialog() == false)
+				{
+					return;
+				}
+			}
+			if (m_afterFXs.CanAfterFX)
+			{
+				if (ShowAnswer())
+				{
+					if (m_afterFXs.Run())
+					{
+						Application.Exit();
+					}
+				}
+			}
+		}
+		private string m_aeppath = string.Empty;
+		public bool OpenAepDialog()
+		{
+			bool ret = false;
+			bool tm = this.TopMost;
+			this.TopMost = false;
+			using (OpenFileDialog dlg = new OpenFileDialog())
+			{
+				dlg.Filter = "*.aep|*.aep|*.*|*.*";
+				dlg.DefaultExt = ".aep";
+				if (Directory.Exists(m_aeppath))
+				{
+					dlg.InitialDirectory = Path.GetDirectoryName(m_aeppath);
+				}
+				else
+				{
+
+				}
+				if (dlg.ShowDialog() == DialogResult.OK)
+				{
+					m_afterFXs.aepPath = dlg.FileName;
+					if (m_afterFXs.aepPath != "")
+					{
+						ret = SetAepPath(dlg.FileName);
+					}
+				}
+				this.TopMost = tm;
+			}
+			return ret;
+		}
+		public bool ShowAnswer()
+		{
+			bool ret = false;
+			bool tm = this.TopMost;
+			this.TopMost = false;
+			using (AnswerOK dlg = new AnswerOK())
+			{
+				dlg.AepText = m_afterFXs.aepPath;
+				dlg.VersionText = m_afterFXs.AfterFX.Caption;
+				dlg.TopMost = true;
+				dlg.IsSound = m_afterFXs.IsSound;
+				dlg.IsMFR = m_afterFXs.IsMFR;
+				dlg.MFRPER = m_afterFXs.MFRPer;
+				if (dlg.ShowDialog() == DialogResult.OK)
+				{
+					m_afterFXs.IsSound = dlg.IsSound;
+					m_afterFXs.IsMFR = dlg.IsMFR;
+					m_afterFXs.MFRPer = dlg.MFRPER;
+					ret = true;
+
+				}
+			}
+			this.TopMost = tm;
+			return ret;
 		}
 	}
 }

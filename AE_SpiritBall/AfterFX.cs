@@ -4,15 +4,18 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace AE_SpiritBall
 {
 	public class AfterFX
 	{
+
 		private string m_Name = "";
 		private string m_Directory = "";
 		private string m_Caption = "";
-
+		private int m_Version = 0;
+		public int Version { get { return m_Version; } }
 		public string FullPath { get {  return Path.Combine(m_Directory, m_Name); } }
 		public string Directory { get { return m_Directory; } }
 		public string Caption { get { return m_Caption; } }
@@ -42,12 +45,130 @@ namespace AE_SpiritBall
 				}
 				m_Caption = ss;
 			}
+			if(m_Caption=="")
+			{
+				m_Version = 12;
+			}
+			else
+			{
+				int v = 0;
+				if (int.TryParse(m_Caption, out v))
+				{
+					switch(v)
+					{
+						case 2013:
+							m_Version = 12;
+							break;
+						case 2014:
+						case 2015:
+						case 2016:
+							m_Version = 13; 
+							break;
+						case 2017:
+							m_Version = 14;
+							break;
+						case 2018:
+							m_Version = 15;
+							break;
+						case 2019:
+							m_Version = 16;
+							break;
+						case 2020:
+							m_Version = 17;
+							break;
+						case 2021:
+							m_Version = 18;
+							break;
+						case 2022:
+							m_Version = 22;
+							break;
+						case 2023:
+							m_Version = 23;
+							break;
+						case 2024:
+							m_Version = 24;
+							break;
+						default:
+							m_Version = v - 2000;
+							break;
+
+					}
+				}
+				else
+				{
+					if (m_Caption.IndexOf("CS6")==0)
+					{
+						m_Version = 11;
+					}else if (m_Caption.IndexOf("CS5") == 0)
+					{
+						m_Version = 10;
+					}
+					else
+					{
+						m_Version = 3;
+					}
+
+				}
+			}
 		}
 
 	}
 
 	public class AfterFXs
 	{
+		private int m_SelectedIndex = -1;
+		public int SelectedIndex
+		{
+			get { return m_SelectedIndex; }
+			set
+			{
+                if (Count>0)
+                {
+					m_SelectedIndex = value;
+					m_SelectedIndex %= Count;
+					if (m_SelectedIndex < 0) m_SelectedIndex += Count;
+				}
+			}
+		}
+		public bool CanAfterFX
+		{
+			get { return ((m_SelectedIndex >= 0) && (m_SelectedIndex < Count)); }
+		}
+		public void SelectedIndexAdd(int v=1)
+		{
+			if(Count == 0) return;
+			SelectedIndex = SelectedIndex + v;
+		}
+		public AfterFX AfterFX
+		{
+			get
+			{
+				AfterFX ret = null;
+				if((m_SelectedIndex >= 0) && (m_SelectedIndex < Count))
+				{
+					ret = m_AfterFXList[m_SelectedIndex];
+				}
+				return ret;
+			}
+		}
+		private string m_aepPath = "";
+		public string aepPath
+		{
+			get { return m_aepPath; }
+			set
+			{
+				string e = Path.GetExtension(value).ToLower();
+
+				if ((e == ".aep")&& (File.Exists(value)))
+				{
+					m_aepPath = value;
+				}
+				else
+				{
+					m_aepPath = "";
+				}
+			}
+		}
 		private List<AfterFX> m_AfterFXList = new List<AfterFX>();
 		public int Count { get { return m_AfterFXList.Count; } }
 		public AfterFXs()
@@ -99,6 +220,63 @@ namespace AE_SpiritBall
 				}
 				return list.ToArray();
 			}
+		}
+
+		public bool IsSound { get; set; }=true;
+		public bool IsMFR { get; set; } = true;
+		public int MFRPer { get; set; } = 50;
+
+
+		public string aerenderCmd()
+		{
+			string ret = "";
+			if (AfterFX != null) 
+			{
+
+				ret = "-project \"{aepPath}\" {sound} {mfr}\"";
+				ret = ret.Replace("{aepPath}", aepPath);
+				if(IsSound)
+				{
+					ret = ret.Replace("{sound}", " -sound ON");
+
+				}
+				if((IsMFR) &&(AfterFX.Version>=22))
+				{
+					ret = ret.Replace("{mfr}", $" -mfr ON {MFRPer}");
+
+				}
+			}
+
+			return ret;
+		}
+		public bool Run()
+		{
+			bool ret = false;
+			if (AfterFX == null) return ret;
+			ProcessStartInfo startInfo = new ProcessStartInfo
+			{
+				FileName = AfterFX.aerender,
+				Arguments = aerenderCmd(),
+				UseShellExecute = false,
+				//RedirectStandardOutput = true,
+				//RedirectStandardError = true,
+				CreateNoWindow = false
+			};
+			try
+			{
+				using (Process process = Process.Start(startInfo))
+				{
+					// プロセスが開始されたことを確認するために少し待つ
+					System.Threading.Thread.Sleep(1000);
+					ret = true;
+
+				}
+			}
+			catch (Exception ex)
+			{
+				ret = false;
+			}
+			return ret;
 		}
 	}
 }
