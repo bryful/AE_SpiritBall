@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("AE_SpiritBall")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("bry-ful")]
 [assembly: AssemblyProduct("AE_SpiritBall")]
-[assembly: AssemblyCopyright("Copyright ©  2024")]
+[assembly: AssemblyCopyright("Copyright ©  2024 bry-ful")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

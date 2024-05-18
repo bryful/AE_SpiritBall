@@ -274,6 +274,7 @@ namespace AE_SpiritBall
 			}
 			catch (Exception ex)
 			{
+				Debug.WriteLine(ex);
 				ret = false;
 			}
 			return ret;

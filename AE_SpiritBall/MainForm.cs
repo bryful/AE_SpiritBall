@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace AE_SpiritBall
 {
-	public partial class Form1 : AfterFXForm
+	public partial class MainForm : AfterFXForm
 	{
-		public Form1()
+		public MainForm()
 		{
 			InitializeComponent();
 		}

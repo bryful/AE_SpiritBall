@@ -1,6 +1,6 @@
 ﻿namespace AE_SpiritBall
 {
-	partial class Form1
+	partial class MainForm
 	{
 		/// <summary>
 		/// 必要なデザイナー変数です。
@@ -30,7 +30,7 @@
 		{
 			this.SuspendLayout();
 			// 
-			// Form1
+			// 
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -45,7 +45,7 @@
 			this.ItemWidth = 80;
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
-			this.Name = "Form1";
+			this.Name = "MainForm";
 			this.SelectedColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(150)))), ((int)(((byte)(200)))));
 			this.SelectedColorNone = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(100)))), ((int)(((byte)(150)))));
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

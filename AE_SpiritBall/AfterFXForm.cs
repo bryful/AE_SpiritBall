@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -262,6 +263,7 @@ namespace AE_SpiritBall
 		protected override void OnLoad(EventArgs e)
 		{
 			base.OnLoad(e);
+			PrefLoad();
 			string[] cmds = System.Environment.GetCommandLineArgs();
 			if (cmds.Length > 1)
 			{
@@ -273,8 +275,6 @@ namespace AE_SpiritBall
 					}
 				}
 			}
-			this.KeyPreview = true;
-			SelectedIndex = m_afterFXs.Count-1;	
 		}
 		public bool SetAepPath(string p)
 		{
@@ -327,6 +327,56 @@ namespace AE_SpiritBall
 		{
 			this.ClientSize = new Size(m_ItemWidth * m_afterFXs.Count, m_ItemHeight + m_BarHeight);
 			base.OnResize(e);
+		}
+		// **************************************************************
+		public void PrefSave()
+		{
+			PrefFile pf = new PrefFile(this);
+			pf.SetValue("AepPath",m_aeppath);
+			pf.SetValue("IsSound", m_afterFXs.IsSound);
+			pf.SetValue("IsMFR", m_afterFXs.IsMFR);
+			pf.SetValue("MFRPer", m_afterFXs.MFRPer);
+			pf.SetValue("Index", SelectedIndex);
+			pf.Save();
+		}
+		protected override void OnFormClosed(FormClosedEventArgs e)
+		{
+			base.OnFormClosed(e);
+			PrefSave();
+		}
+		public void PrefLoad()
+		{
+			PrefFile pf = new PrefFile(this);
+			MessageBox.Show(pf.FilePath);
+			pf.Load();
+			bool ok;
+			object v;
+			v = pf.GetValueString("AepPath", out ok);
+			if(ok)
+			{
+				m_aeppath =(string)v;
+			}
+			v = pf.GetValueBool("IsSound", out ok);
+			if (ok)
+			{
+				m_afterFXs.IsSound = (bool)v;
+			}
+			v = pf.GetValueBool("IsMFR", out ok);
+			if (ok)
+			{
+				m_afterFXs.IsMFR = (bool)v;
+			}
+			v = pf.GetValueInt("MFRPer", out ok);
+			if (ok)
+			{
+				m_afterFXs.MFRPer = (int)v;
+			}
+			v = pf.GetValueInt("Index", out ok);
+			if (ok)
+			{
+				SelectedIndex = (int)v;
+			}
+
 		}
 		// **************************************************************
 		protected override void OnPaint(PaintEventArgs e)
