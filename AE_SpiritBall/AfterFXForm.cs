@@ -445,10 +445,11 @@ namespace AE_SpiritBall
 		private void InitializeComponent()
 		{
 			this.components = new System.ComponentModel.Container();
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AfterFXForm));
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.openAepFileMenu = new System.Windows.Forms.ToolStripMenuItem();
-			this.quitMenu = new System.Windows.Forms.ToolStripMenuItem();
 			this.clearAepPathMenu = new System.Windows.Forms.ToolStripMenuItem();
+			this.quitMenu = new System.Windows.Forms.ToolStripMenuItem();
 			this.contextMenuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -459,31 +460,32 @@ namespace AE_SpiritBall
             this.clearAepPathMenu,
             this.quitMenu});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(181, 92);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(149, 70);
 			// 
 			// openAepFileMenu
 			// 
 			this.openAepFileMenu.Name = "openAepFileMenu";
-			this.openAepFileMenu.Size = new System.Drawing.Size(180, 22);
+			this.openAepFileMenu.Size = new System.Drawing.Size(148, 22);
 			this.openAepFileMenu.Text = "Open AepFile";
-			// 
-			// quitMenu
-			// 
-			this.quitMenu.Name = "quitMenu";
-			this.quitMenu.Size = new System.Drawing.Size(180, 22);
-			this.quitMenu.Text = "Quit";
 			// 
 			// clearAepPathMenu
 			// 
 			this.clearAepPathMenu.Name = "clearAepPathMenu";
-			this.clearAepPathMenu.Size = new System.Drawing.Size(180, 22);
+			this.clearAepPathMenu.Size = new System.Drawing.Size(148, 22);
 			this.clearAepPathMenu.Text = "Clear AepPath";
+			// 
+			// quitMenu
+			// 
+			this.quitMenu.Name = "quitMenu";
+			this.quitMenu.Size = new System.Drawing.Size(148, 22);
+			this.quitMenu.Text = "Quit";
 			// 
 			// AfterFXForm
 			// 
 			this.ClientSize = new System.Drawing.Size(507, 104);
 			this.ContextMenuStrip = this.contextMenuStrip1;
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.KeyPreview = true;
 			this.Name = "AfterFXForm";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
