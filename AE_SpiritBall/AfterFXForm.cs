@@ -347,7 +347,6 @@ namespace AE_SpiritBall
 		public void PrefLoad()
 		{
 			PrefFile pf = new PrefFile(this);
-			MessageBox.Show(pf.FilePath);
 			pf.Load();
 			bool ok;
 			object v;
@@ -567,6 +566,15 @@ namespace AE_SpiritBall
 			}
 			this.TopMost = tm;
 			return ret;
+		}
+		protected override void OnKeyDown(KeyEventArgs e)
+		{
+			if((e.KeyCode == Keys.Q)&&((e.Modifiers & Keys.Control)== Keys.Control)) 
+			{
+				Application.Exit();	
+			}
+
+			base.OnKeyDown(e);
 		}
 	}
 }
